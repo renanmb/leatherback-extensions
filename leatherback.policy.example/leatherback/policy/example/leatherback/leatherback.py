@@ -5,6 +5,7 @@ import omni
 import omni.kit.commands
 from isaacsim.core.utils.rotations import quat_to_rot_matrix
 from isaacsim.core.utils.types import ArticulationAction
+from isaacsim.core.prims import Articulation
 
 # must experiment with the policy controller - general vs bespoke
 from leatherback.policy.example.controllers import PolicyController
@@ -188,8 +189,8 @@ class LeatherbackPolicy(PolicyController):
         """
         if self._policy_counter % self._decimation == 0:
             obs = self._compute_observation(command)
-            print(command)
-            print(obs)
+            # print(command)
+            # print(obs)
             # OBS seems to break
             # position error --- heading error cos --- heading error sin --- lin_vel_b[0] --- lin_vel_b[1] --- ang_vel_b[2] --- self._previous_action[0] --- self._previous_action[1]
             # [ 7.57492982e-01   9.96917751e-01        -7.84537909e-02       -6.99431277e-02   6.90974605e-02  -2.61267261e-01   1.55072185e+38              -9.56584456e+37]
@@ -200,8 +201,8 @@ class LeatherbackPolicy(PolicyController):
             # [ 0.75939462       0.99725618            -0.07402772            0.03912768      -0.0289128       -0.19934663              nan                      nan        ]
 
             self.action, self.actions = self._compute_action(obs)
-            print(self.action)
-            print(self.actions)
+            # print(self.action)
+            # print(self.actions)
             self.repeated_arr = np.repeat(self.action, [4, 2])
             self._previous_action = self.action.copy()
         # action = ArticulationAction(joint_positions=self.default_pos + (self.repeated_arr * self._action_scale))

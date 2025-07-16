@@ -84,7 +84,7 @@ scene:
   filter_collisions: true
   robot:
     class_type: isaaclab.assets.articulation.articulation:Articulation
-    prim_path: '{ENV_REGEX_NS}/Robot'
+    prim_path: /World/envs/env_.*/Robot
     spawn:
       func: isaaclab.sim.spawners.from_files.from_files:spawn_from_usd
       visible: true
@@ -492,7 +492,7 @@ scene:
     class_type: isaaclab.terrains.terrain_importer:TerrainImporter
     collision_group: -1
     prim_path: /World/ground
-    num_envs: 1
+    num_envs: 4096
     terrain_type: generator
     terrain_generator:
       seed: null
@@ -513,20 +513,20 @@ scene:
           function: isaaclab.terrains.trimesh.mesh_terrains:flat_terrain
           proportion: 0.2
           size: !!python/tuple
-          - 10.0
-          - 10.0
+          - 8.0
+          - 8.0
           flat_patch_sampling: null
         random_rough:
           function: isaaclab.terrains.height_field.hf_terrains:random_uniform_terrain
           proportion: 0.2
           size: !!python/tuple
-          - 10.0
-          - 10.0
+          - 8.0
+          - 8.0
           flat_patch_sampling: null
           border_width: 0.25
           horizontal_scale: 0.1
           vertical_scale: 0.005
-          slope_threshold: null
+          slope_threshold: 0.75
           noise_range: !!python/tuple
           - 0.02
           - 0.05
@@ -538,7 +538,7 @@ scene:
       use_cache: false
       cache_dir: /tmp/isaaclab/terrains
     usd_path: null
-    env_spacing: null
+    env_spacing: 2.5
     visual_material:
       func: isaaclab.sim.spawners.materials.visual_materials:spawn_from_mdl_file
       mdl_path: http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/4.5/Isaac/IsaacLab/Materials/TilesMarbleSpiderWhiteBrickBondHoned/TilesMarbleSpiderWhiteBrickBondHoned.mdl
@@ -562,7 +562,7 @@ scene:
   height_scanner: null
   contact_forces:
     class_type: isaaclab.sensors.contact_sensor.contact_sensor:ContactSensor
-    prim_path: '{ENV_REGEX_NS}/Robot/.*'
+    prim_path: /World/envs/env_.*/Robot/.*
     update_period: 0.002
     history_length: 3
     debug_vis: false

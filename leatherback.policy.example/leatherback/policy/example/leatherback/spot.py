@@ -50,8 +50,8 @@ class SpotFlatTerrainPolicy(SpotPolicyController):
             )
         else:
             self.load_policy(
-                    policy_path + "/policy.onnx", # policy_path + "/spot_policy.pt",
-                    policy_path + "/env.yaml",  # policy_path + "/spot_env.yaml",
+                    policy_path + "/policy_agent.onnx", # policy_path + "/spot_policy.pt", "/policy.onnx"
+                    policy_path + "/env.yaml",  # policy_path + "/spot_env.yaml", "/env.yaml"
                 ) 
     
         self._action_scale = 0.2
@@ -116,6 +116,8 @@ class SpotFlatTerrainPolicy(SpotPolicyController):
             obs = self._compute_observation(command)
             self.action = self._compute_action(obs)
             self._previous_action = self.action.copy()
+            print(obs)
+            print(self.action)
 
         action = ArticulationAction(joint_positions=self.default_pos + (self.action * self._action_scale))
         self.robot.apply_action(action)

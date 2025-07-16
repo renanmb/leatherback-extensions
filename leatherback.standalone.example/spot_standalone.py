@@ -26,6 +26,7 @@ from isaacsim.storage.native import get_assets_root_path
 import os
 script_dir = os.path.dirname(__file__)
 relative_path = os.path.join("..", "spot_onnx")
+# relative_path = os.path.join("..", "spot_stuff")
 full_path = os.path.abspath(os.path.join(script_dir, relative_path))
 usd_path = os.path.abspath(os.path.join(full_path, "spot.usd"))
 
