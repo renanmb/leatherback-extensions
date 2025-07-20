@@ -54,7 +54,7 @@ class LeatherbackPolicy(PolicyController):
             print("Policy not found")
         else:
             self.load_policy(
-                    policy_path + "/policy_agent.onnx", # policy_path + "/spot_policy.pt",
+                    policy_path + "/policy.onnx", # policy_path + "/spot_policy.pt",
                     policy_path + "/env.yaml",  # policy_path + "/spot_env.yaml",
                 ) 
     

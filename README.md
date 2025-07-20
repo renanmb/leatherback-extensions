@@ -10,6 +10,14 @@ Big issues:
 matching the actions to the right scale
 Do not know if in IsaacLab it is using the Mean Actions 
 
+test simulator runs:
+
+Inside where you put the IsaacSim
+
+```bash
+./python.sh ./standalone_examples/api/isaacsim.core.api/add_cubes.py 
+```
+
 ## Installation
 
 **Step 1** - Go to the isaacsim root installation, (a.k.a where the python.sh is)
