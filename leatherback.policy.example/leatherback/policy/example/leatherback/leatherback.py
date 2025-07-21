@@ -87,10 +87,10 @@ class LeatherbackPolicy(PolicyController):
 
         """
         """Multiplier for the throttle velocity. The action is in the range [-1, 1] and the radius of the wheel is 0.06m"""
-        throttle_scale = 1 # when set to 2 it trains but the cars are flying, 3 you get NaNs
-        throttle_max = 5 #50.0 # throttle_max = 60.0
+        throttle_scale = 5 # when set to 2 it trains but the cars are flying, 3 you get NaNs
+        throttle_max = 50 #50.0 # throttle_max = 60.0
         """Multiplier for the steering position. The action is in the range [-1, 1]"""
-        steering_scale = 0.1 # steering_scale = math.pi / 4.0
+        steering_scale = 0.01 # steering_scale = math.pi / 4.0
         steering_max = 0.75
         # this is using the articulation type 
         # from isaacsim.core.prims import SingleArticulation
@@ -167,7 +167,7 @@ class LeatherbackPolicy(PolicyController):
         obs[5:6] = ang_vel_b[2]
         # _throttle_state
         throttle_action = self._previous_action[0]*throttle_scale
-        _throttle_state = np.clip(throttle_action, -throttle_max, throttle_max*0.1)
+        _throttle_state = np.clip(throttle_action, -throttle_max, throttle_max*1) # 0.1
         obs[6:7] = _throttle_state # self._previous_action[0]
         # _steering_state
         steering_action = self._previous_action[1]*steering_scale

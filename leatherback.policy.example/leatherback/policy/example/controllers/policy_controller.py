@@ -74,7 +74,7 @@ class PolicyController(BaseController):
         track_width = 0.24
         front_wheel_radius = 0.052
         back_wheel_radius = 0.052
-        max_wheel_velocity = 20.0
+        max_wheel_velocity = 50.0
         # invert_steering: bool = False,
         max_wheel_rotation_angle = 0.7854
         max_acceleration = 1.0
@@ -216,12 +216,12 @@ class PolicyController(BaseController):
         dt = 0.0  # secs
         
         """Multiplier for the throttle velocity. The action is in the range [-1, 1] and the radius of the wheel is 0.06m"""
-        throttle_scale = 1 # when set to 2 it trains but the cars are flying, 3 you get NaNs
+        throttle_scale = 5 # 10
         throttle_max = 1 #50.0 # throttle_max = 60.0
         
         """Multiplier for the steering position. The action is in the range [-1, 1]"""
-        steering_scale = 0.1 # steering_scale = math.pi / 4.0
-        steering_max = 1 #0.75
+        steering_scale = 0.01 # 0.1 steering_scale = math.pi / 4.0
+        steering_max = 0.75 #0.75
         
         _throttle = np.clip(action[0]*throttle_scale, -throttle_max, throttle_max*1)
         _steering = np.clip(action[1]*steering_scale, -steering_max, steering_max)
