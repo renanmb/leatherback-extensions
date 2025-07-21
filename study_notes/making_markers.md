@@ -1,5 +1,23 @@
 # Study Note on making Markers
 
+IsaacSim has a builtin api to make spheres.
+
+```python
+from isaacsim.core.api.objects import VisualSphere
+
+VisualSphere(
+        prim_path="/new_cube_2",
+        name="cube_1",
+        position=base_command, #np.array([0, 0, 1.0]),
+        # scale=np.array([0.6, 0.5, 0.2]),
+        # size=1.0,
+        radius = 0.1,
+        color=np.array([255, 0, 0]),
+    )
+```
+
+IsaacLab is using the PointInstancer to make visualization markers which is quite elaborate.
+
 IsaacLab has a way to implement visualization markers that is great for debugging models and is not present in IsaacSim.
 
 inside source -> isaaclab -> markers -> visualization_markers.py
@@ -165,3 +183,57 @@ self._instancer_manager.GetPositionsAttr().Set(Vt.Vec3fArray.FromNumpy(translati
 Vt is from Omniverse kit
 
 Vec3fArray - An array of type GfVec3f.
+
+The ```VisualizationMarkersCfg```
+
+```python
+import isaaclab.sim as sim_utils
+from isaaclab.markers import VisualizationMarkersCfg, VisualizationMarkers
+
+##
+# configuration
+##
+
+WAYPOINT_CFG = VisualizationMarkersCfg(
+    prim_path="/World/Visuals/Cones",
+    markers={
+        "marker0": sim_utils.SphereCfg(
+            radius=0.1,
+            visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(1.0, 0.0, 0.0)),
+        ),
+        "marker1": sim_utils.SphereCfg(
+            radius=0.1,
+            visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 0.0, 1.0)),
+        ),
+    }
+)
+```
+
+```python
+import isaacsim.core.utils.stage as stage_utils
+# create a new prim
+stage = stage_utils.get_current_stage()
+self._instancer_manager = UsdGeom.PointInstancer.Define(stage, prim_path)
+```
+
+```python
+def _add_markers_prototypes(self, markers_cfg: dict[str, sim_utils.SpawnerCfg]):
+    """Adds markers prototypes to the scene and sets the markers instancer to use them."""
+    # add markers based on config
+    for name, cfg in markers_cfg.items():
+        # resolve prim path
+        marker_prim_path = f"{self.prim_path}/{name}"
+        # create a child prim for the marker
+        marker_prim = cfg.func(prim_path=marker_prim_path, cfg=cfg)
+        # make the asset uninstanceable (in case it is)
+        # point instancer defines its own prototypes so if an asset is already instanced, this doesn't work.
+        self._process_prototype_prim(marker_prim)
+        # add child reference to point instancer
+        self._instancer_manager.GetPrototypesRel().AddTarget(marker_prim_path)
+    # check that we loaded all the prototypes
+    prototypes = self._instancer_manager.GetPrototypesRel().GetTargets()
+    if len(prototypes) != len(markers_cfg):
+        raise RuntimeError(
+            f"Failed to load all the prototypes. Expected: {len(markers_cfg)}. Received: {len(prototypes)}."
+        )
+```

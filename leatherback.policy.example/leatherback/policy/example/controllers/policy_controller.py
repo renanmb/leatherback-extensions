@@ -1,4 +1,3 @@
-
 import io
 from typing import Optional
 
@@ -217,11 +216,11 @@ class PolicyController(BaseController):
         dt = 0.0  # secs
         
         """Multiplier for the throttle velocity. The action is in the range [-1, 1] and the radius of the wheel is 0.06m"""
-        throttle_scale = -1 # when set to 2 it trains but the cars are flying, 3 you get NaNs
+        throttle_scale = 1 # when set to 2 it trains but the cars are flying, 3 you get NaNs
         throttle_max = 1 #50.0 # throttle_max = 60.0
         
         """Multiplier for the steering position. The action is in the range [-1, 1]"""
-        steering_scale = -0.1 # steering_scale = math.pi / 4.0
+        steering_scale = 0.1 # steering_scale = math.pi / 4.0
         steering_max = 1 #0.75
         
         _throttle = np.clip(action[0]*throttle_scale, -throttle_max, throttle_max*1)
