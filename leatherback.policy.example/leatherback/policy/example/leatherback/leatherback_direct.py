@@ -26,17 +26,10 @@ import carb
 # import omni
 import torch
 from isaacsim.core.api.controllers.base_controller import BaseController
-# from omni.isaac.wheeled_robots.controllers import AckermannController # use this instead of BaseController
-# from isaacsim.robot.wheeled_robots.controllers.ackermann_controller import AckermannController
-
-# from leatherback.policy.example.ackermann_robot import AckermannRobot
 
 from isaacsim.core.prims import SingleArticulation
 from isaacsim.core.utils.prims import define_prim, get_prim_at_path
 
-# must experiment with the config_loader - general vs bespoke
-# if general must add a way to configure it through the python API
-# from .config_loader import get_articulation_props, get_physics_properties, get_robot_joint_properties, parse_env_config
 
 # Adding the ONNX runtime
 import os
@@ -93,6 +86,31 @@ class LeatherbackDirect(BaseController):
         self._previous_action = np.zeros(2)
         self._policy_counter = 0
 
+    # --------------------------------------------
+    # From policy_controller.py
+    # --------------------------------------------  
+    if not prim.IsValid():
+            prim = define_prim(prim_path, "Xform")
+            if usd_path:
+                prim.GetReferences().AddReference(usd_path)
+            else:
+                carb.log_error("unable to add robot usd, usd_path not provided")
+
+    # Need to initialize the articulations here for the throttle and for the velocities.
+    if root_path == None:
+        self.robot = SingleArticulation(prim_path=prim_path, name=name, position=position, orientation=orientation)
+    else:
+        self.robot = SingleArticulation(prim_path=root_path, name=name, position=position, orientation=orientation)
+
+        # steering_action = ArticulationAction(
+        #     joint_positions=actions.joint_positions,
+        #     joint_indices=self._steering_dof_indices,
+        # )
+        # throttle_action = ArticulationAction(
+        #     joint_velocities=actions.joint_velocities,
+        #     joint_indices=self._throttle_dof_indices,
+        # )
+            
     def load_policy(self, policy_file_path, policy_env_path) -> None:
         """
         Loads a policy from a file.
@@ -102,24 +120,15 @@ class LeatherbackDirect(BaseController):
             policy_env_path (str): The path to the environment configuration file. Example: spot_env.yaml
         """
         if policy_file_path.endswith('.pt') or policy_file_path.endswith('.pth'):
-            file_content = omni.client.read_file(policy_file_path)[2]
-            file = io.BytesIO(memoryview(file_content).tobytes())
             # Loading a Torch JIT file for Inference
             self.policy = torch.jit.load(file)
             self._isJIT = 1
         # region ONNX
-        # Add here an option for ONNX inference
         elif policy_file_path.endswith('.onnx'):
-            # Unnecessary Byte stream for now
-            file_content = omni.client.read_file(policy_file_path)[2]
-            file = io.BytesIO(memoryview(file_content).tobytes())
             # Load ONNX model 
             self.session = ort.InferenceSession(policy_file_path)
             self._isJIT = 0
         # end of region ONNX
-        self.policy_env_params = parse_env_config(policy_env_path)
-
-        self._decimation, self._dt, self.render_interval = get_physics_properties(self.policy_env_params)
 
     def _compute_action(self, obs: np.ndarray) -> np.ndarray:
         """
@@ -145,43 +154,19 @@ class LeatherbackDirect(BaseController):
             # Get output and flatten to 1D array like .view(-1).numpy()
             action = outputs[0].reshape(-1)
         # end region ONNX
-        # return the action from the Ackermann controller
-        """Calculate right and left wheel angles and angular velocity of each wheel given steering angle and desired forward velocity.
-
-        Args:
-            command (np.ndarray): [desired steering angle (rad), steering_angle_velocity (rad/s), desired velocity of robot (m/s), acceleration (m/s^2), delta time (s)]
-
-        Returns:
-            ArticulationAction: joint_velocities = [front left wheel, front right wheel, back left wheel, back right wheel]; joint_positions = [left wheel angle, right wheel angle]
-        """
-        # Setting acceleration, steering velocity, and dt to 0 to instantly reach the target steering and velocity
-        acceleration = 0.0  # m/s^2
-        steering_velocity = 0.0  # rad/s
-        dt = 0.0  # secs
         
-        """Multiplier for the throttle velocity. The action is in the range [-1, 1] and the radius of the wheel is 0.06m"""
-        throttle_scale = -1 # when set to 2 it trains but the cars are flying, 3 you get NaNs
-        throttle_max = 1 #50.0 # throttle_max = 60.0
+        # Might want to do cliping but settup variables to be initialized
+        # _throttle = np.clip(action[0]*throttle_scale, -throttle_max, throttle_max*1)
+        # _steering = np.clip(action[1]*steering_scale, -steering_max, steering_max)
         
-        """Multiplier for the steering position. The action is in the range [-1, 1]"""
-        steering_scale = -0.1 # steering_scale = math.pi / 4.0
-        steering_max = 1 #0.75
-        
-        _throttle = np.clip(action[0]*throttle_scale, -throttle_max, throttle_max*1)
-        _steering = np.clip(action[1]*steering_scale, -steering_max, steering_max)
-        
-        desired_forward_vel = _throttle # action[0]
-        desired_steering_angle = _steering  # action[1]
-
-        actions = self.controller.forward([desired_steering_angle, steering_velocity, desired_forward_vel, acceleration, dt])
-        # Seems to have numerical stability issues with the model
         # action = [ throttle, steering ]
-
-        return action, actions
-    
+        return action
+    # --------------------------------------------
+    # From leatherback.py
+    # --------------------------------------------
     def _compute_observation(self, command):
         """
-        Compute the observation vector for the policy
+        Compute the observations numpy array to be given for the policy
 
         Argument:
         command (np.ndarray) -- the waypoint goal (x, y, z)
@@ -189,28 +174,23 @@ class LeatherbackDirect(BaseController):
         Returns:
         np.ndarray -- The observation vector.
         """
-        """Multiplier for the throttle velocity and steering position"""
-        throttle_scale = 1 # when set to 2 it trains but the cars are flying, 3 you get NaNs
-        throttle_max = 5 #50.0 # throttle_max = 60.0
-        steering_scale = 0.1 # steering_scale = math.pi / 4.0
-        steering_max = 0.75
-        # this is using the articulation type 
-        # from isaacsim.core.prims import SingleArticulation
-        # self.robot = SingleArticulation(prim_path=prim_path, name=name, position=position, orientation=orientation)
+        
         lin_vel_I = self.robot.get_linear_velocity()
         ang_vel_I = self.robot.get_angular_velocity()
+
         # position, orientation = prim.get_world_pose()
         pos_IB, q_IB = self.robot.get_world_pose() 
-        print(pos_IB)
+
         R_IB = quat_to_rot_matrix(q_IB)
         R_BI = R_IB.transpose()
         lin_vel_b = np.matmul(R_BI, lin_vel_I)
         ang_vel_b = np.matmul(R_BI, ang_vel_I)
-        gravity_b = np.matmul(R_BI, np.array([0.0, 0.0, -1.0]))
-
+        # gravity_b = np.matmul(R_BI, np.array([0.0, 0.0, -1.0])) # Wonder if gravity can add any benefit
+        # Calcualting the position error
         _position_error_vector = command - pos_IB
         _position_error = np.linalg.norm(_position_error_vector) # , axis=-1
         
+        # Calculating the Heading Error
         FORWARD_VEC_B = np.array([1.0, 0.0, 0.0]) # Do I need _root_physx_view ?
         quat = q_IB.reshape(-1, 4)
         vec = FORWARD_VEC_B.reshape(-1, 3)
@@ -223,28 +203,40 @@ class LeatherbackDirect(BaseController):
 
         target_heading_w = np.arctan2(command[1]-pos_IB[1], command[0]-pos_IB[0])
         _heading_error = target_heading_w - heading_w
+        
+        # throttle_action and steering_action
+        throttle_action = self._previous_action[0]*throttle_scale
+        _throttle_state = np.clip(throttle_action, -throttle_max, throttle_max*0.1)
+        steering_action = self._previous_action[1]*steering_scale
+        _steering_state = np.clip(steering_action, -steering_max, steering_max)
+        
+        """
+        Multiplier for the throttle velocity and steering position
+        Studying on the impact of the interference on the 2 Observations:
+            - _throttle_state
+            - _steering_state
+        From all the observations these 2 are the ones that seems to cause noisy aoutput from the Policy
+        """
+        throttle_scale = 1 # when set to 2 it trains but the cars are flying, 3 you get NaNs
+        throttle_max = 5 #50.0 # throttle_max = 60.0
+        steering_scale = 0.1 # steering_scale = math.pi / 4.0
+        steering_max = 0.75
 
         obs = np.zeros(8)
         # Position Error
-        obs[:1] = _position_error
+        obs[0] = _position_error
         # Heading error
-        obs[1:2] = np.cos(_heading_error)[:, np.newaxis]
-        obs[2:3] = np.sin(_heading_error)[:, np.newaxis]
+        obs[1] = np.cos(_heading_error)[:, np.newaxis]
+        obs[2] = np.sin(_heading_error)[:, np.newaxis]
         # Linear Velocity X and Y
-        obs[3:4] = lin_vel_b[0]
-        obs[4:5] = lin_vel_b[1]
+        obs[3] = lin_vel_b[0]
+        obs[4] = lin_vel_b[1]
         # Angular Velocity vZ
-        obs[5:6] = ang_vel_b[2]
+        obs[5] = ang_vel_b[2]
         # _throttle_state
-        throttle_action = self._previous_action[0]*throttle_scale
-        _throttle_state = np.clip(throttle_action, -throttle_max, throttle_max*0.1)
-        obs[6:7] = _throttle_state # self._previous_action[0]
+        obs[6] = _throttle_state # self._previous_action[0]
         # _steering_state
-        steering_action = self._previous_action[1]*steering_scale
-        _steering_state = np.clip(steering_action, -steering_max, steering_max)
-        # which joint is steering and will this return the right value ?
-        # current_joint_pos = self.robot.get_joint_positions()
-        obs[7:] = _steering_state # self._previous_action[1]
+        obs[7] = _steering_state # self._previous_action[1]
 
         return obs
 
@@ -259,26 +251,24 @@ class LeatherbackDirect(BaseController):
         """
         if self._policy_counter % self._decimation == 0:
             obs = self._compute_observation(command)
-            print(command)
-
-            self.action, self.actions = self._compute_action(obs)
-            # print(self.action)
-            # print(self.actions)
+            self.action = self._compute_action(obs)
             self.repeated_arr = np.repeat(self.action, [4, 2])
             self._previous_action = self.action.copy()
-        # action = ArticulationAction(joint_positions=self.default_pos + (self.repeated_arr * self._action_scale))
-        # action = ArticulationAction(joint_velocities = self.actions.joint_velocities, joint_positions = self.actions.joint_positions)
+
+        # The ackermann_robot.py is getting the joint indices to generate the proper actions objects for steering and throttle
         steering_action = ArticulationAction(
-                joint_positions=actions.joint_positions,
+                joint_positions=self.repeated_arr[-2:],
                 joint_indices=self._steering_dof_indices,
             )
         throttle_action = ArticulationAction(
-                joint_velocities=actions.joint_velocities,
+                joint_velocities=self.repeated_arr[:4],
                 joint_indices=self._throttle_dof_indices,
             )
         # self.robot.apply_action(action)
 
-        self.robot.apply_wheel_actions(self.actions)
+        # self.robot.apply_wheel_actions(self.actions) 
+        self.apply_action(control_actions=steering_action)
+        self.apply_action(control_actions=throttle_action)
 
         self._policy_counter += 1
 

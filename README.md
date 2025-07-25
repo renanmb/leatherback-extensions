@@ -18,6 +18,13 @@ Inside where you put the IsaacSim
 ./python.sh ./standalone_examples/api/isaacsim.core.api/add_cubes.py 
 ```
 
+
+```bash
+python scripts/skrl/play.py --task Isaac-Leatherback-Direct-v1 --num_envs 32
+./python.sh /home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/leatherback_standalone.py
+./python.sh /home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/spot_standalone.py
+```
+
 ## Installation
 
 **Step 1** - Go to the isaacsim root installation, (a.k.a where the python.sh is)

@@ -29,6 +29,9 @@ from isaacsim.core.api.objects import VisualSphere
 import omni.usd
 from pxr import UsdLux, Sdf, Gf
 
+# IMU sensor 
+# from isaacsim.sensors.physics import IMUSensor
+
 script_dir = os.path.dirname(__file__)
 relative_path = os.path.join("..", "leatherback")
 full_path = os.path.abspath(os.path.join(script_dir, relative_path))
@@ -119,6 +122,15 @@ spot = LeatherbackPolicy(
     usd_path = usd_path,
     position=np.array([-1, 0, 0.05]),
 )
+# IMU sensor 
+# imu_sensor = my_world.scene.add(
+#     IMUSensor(
+#         prim_path="/World/Carter/caster_wheel_left/imu_sensor",
+#         name="imu",
+#         frequency=60,
+#         translation=np.array([0, 0, 0]),
+#     )
+# )
 my_world.reset()
 my_world.add_physics_callback("physics_step", callback_fn=on_physics_step)
 
@@ -139,6 +151,7 @@ while simulation_app.is_running():
         print(f"Is the goal reached: {goal_reached}")
         # base_command = np.array([6, 0, 0])
         commands = np.array([[1, 0, 0],[3, 2, 0],[2, 4, 0],[0, 4, 0],[-1, 2, 0]])
+        # commands = np.array([[1, 0, 0],[10, 2, 0],[3, 6, 0],[0, 4, 0],[-1, 2, 0]])
 
         # ----------------------------------------
         # iterating over array
