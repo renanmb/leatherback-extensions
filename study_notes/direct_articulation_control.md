@@ -7,6 +7,9 @@ Several objectives by doing a Direct Articulation Control extension.
 
 IsaacLab for leatherback in its simplest example is trained using direct control of all the joints and the car has the ackermann geometry, so understand whether or not you need a controller interface for training and how far you can deviate from the original setting is interesting.
 
+Interesting weird behavior:
+- When applying the actions directly to the articulations in similar manner to the IsaacLab, the car moves a lot faster. So it is most likely because there are parameters from the env.yaml that are important. But it does present odd behavior as it gets stuck trying to reach an waypoint.
+
 
 ## Initializing the Robot
 

@@ -113,7 +113,7 @@ class LeatherbackDirect(BaseController):
         self._policy_counter = 0
         # From the env.yaml
         self._decimation = 4
-        self._dt = 0.016666666666666666
+        self._dt = 1 / 60 #0.016666666666666666
 
         # Need to initialize the articulations here for the throttle and for the velocities.
         if root_path == None:
@@ -243,14 +243,16 @@ class LeatherbackDirect(BaseController):
 
         if self._policy_counter % self._decimation == 0:
             obs = self._compute_observation(command)
+            print(f"printing the Command: {command}")
+            print(f"printing the Observation: {obs}")
             self.action = self._compute_action(obs)
             self._action = self.action.copy()
             # throttle_action and steering_action
             throttle_action = self.action[0]*throttle_scale
-            self._action[0] = np.clip(throttle_action, -throttle_max, throttle_max*0.1)
+            self._action[0] = np.clip(throttle_action, -throttle_max, throttle_max*1)
             steering_action = self.action[1]*steering_scale
             self._action[1] = np.clip(steering_action, -steering_max, steering_max)
-
+            print(f"printing the _action: {self._action}")
             self.repeated_arr = np.repeat(self._action, [4, 2])
             self._previous_action = self._action.copy()
 
