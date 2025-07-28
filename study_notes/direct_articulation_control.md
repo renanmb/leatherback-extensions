@@ -7,6 +7,15 @@ Several objectives by doing a Direct Articulation Control extension.
 
 IsaacLab for leatherback in its simplest example is trained using direct control of all the joints and the car has the ackermann geometry, so understand whether or not you need a controller interface for training and how far you can deviate from the original setting is interesting.
 
+
+## Initializing the Robot
+
+The idea of initializing the robot can mean different things depending on the project, for the Nvidia demos like the spot it is using the ```config_loader.py``` to parse the YAML from isaaclab and set the values for effort_modes, for the gains (stiffness and damping), the limits in set_limits as the maximum effort set_max_efforts(max_effort) and maximum joint velocities set_max_joint_velocities(max_vel).
+
+For the extension and samples related to the Ackermann and wheeled robots the initialize method is trying to get the Joint indices.
+
+The method ```get_dof_index``` is from SingleArticulation.
+
 The following code is fromt he ```ackermann_robot.py``` and we must initialize
 
 ```python

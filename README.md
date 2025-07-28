@@ -22,6 +22,7 @@ Inside where you put the IsaacSim
 ```bash
 python scripts/skrl/play.py --task Isaac-Leatherback-Direct-v1 --num_envs 32
 ./python.sh /home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/leatherback_standalone.py
+./python.sh /home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/leatherback_standalone_direct.py
 ./python.sh /home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/spot_standalone.py
 ```
 
