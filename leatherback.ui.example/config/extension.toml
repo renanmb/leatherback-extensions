@@ -16,7 +16,24 @@ icon = "data/icon.png"
 
 [dependencies]
 "omni.kit.uiapp" = {}
-
+"isaacsim.core.api" = {}
+"isaacsim.core.prims" = {}
+"isaacsim.cortex.behaviors" = {}
+"isaacsim.cortex.framework" = {}
+"isaacsim.examples.browser" = {}
+"isaacsim.gui.components" = {}
+"isaacsim.robot.manipulators" = {}
+"isaacsim.robot.manipulators.examples" = {}
+"isaacsim.robot_motion.motion_generation" = {}
+"isaacsim.robot.policy.examples" = {}
+"isaacsim.examples.extension" = {}
+"omni.graph.action" = {}
+"omni.graph.nodes" = {}
+"omni.graph.core" = {}
+"omni.isaac.dynamic_control" = {}
+"isaacsim.storage.native" = {}
+"isaacsim.robot.wheeled_robots" = {}
+"omni.physx" = {}
 
 # define the Python module that the extension provides
 [[python.module]]

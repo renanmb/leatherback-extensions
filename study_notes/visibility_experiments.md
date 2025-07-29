@@ -171,3 +171,36 @@ if val: print(f"MOVE_DOWN : {val}")
 val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.COUNT)
 if val: print(f"COUNT : {val}")
 ```
+
+## Dependencies
+
+The robotics samples have the following dependencies as reference
+
+```toml
+"omni.kit.uiapp" = {}
+"isaacsim.core.api" = {}
+"isaacsim.core.prims" = {}
+"isaacsim.cortex.behaviors" = {}
+"isaacsim.cortex.framework" = {}
+"isaacsim.examples.browser" = {}
+"isaacsim.gui.components" = {}
+"isaacsim.robot.manipulators" = {}
+"isaacsim.robot.manipulators.examples" = {}
+"isaacsim.robot_motion.motion_generation" = {}
+"isaacsim.robot.policy.examples" = {}
+"isaacsim.examples.extension" = {}
+"omni.graph.action" = {}
+"omni.graph.nodes" = {}
+"omni.graph.core" = {}
+"omni.isaac.dynamic_control" = {}
+"isaacsim.storage.native" = {}
+"isaacsim.robot.wheeled_robots" = {}
+"omni.physx" = {}
+```
+
+## Error getting the USD
+
+
+```bash
+2025-07-29 20:16:44  [Warning] [omni.usd] Warning: in _ReportErrors at line 2890 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/leatherback>: Could not open asset @/home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.ui.example/leatherback/ui/example/leatherback/leatherback_simple_better.usd@ for reference introduced by @anon:0x74da401d4580:World4.usd@</World/leatherback>. (computing expanded prim index for </World/leatherback> on stage @anon:0x74da401d4580:World4.usd@ <0x74da401d8da0>)
+```
