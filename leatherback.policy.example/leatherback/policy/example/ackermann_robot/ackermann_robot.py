@@ -32,6 +32,22 @@ class AckermannRobot(Robot):
                             name="Goat",
                             wheel_dof_names=["left_wheel_joint", "right_wheel_joint"]
                             )
+        
+        robot = AckermannRobot(
+                            prim_path=prim_path,
+                            name=name,
+                            position=position,
+                            throttle_dof_names=[
+                                "Wheel__Knuckle__Front_Left", 
+                                "Wheel__Knuckle__Front_Right",
+                                "Wheel__Upright__Rear_Right",
+                                "Wheel__Upright__Rear_Left"
+                            ],
+                            steering_dof_names=[
+                                "Knuckle__Upright__Front_Right",
+                                "Knuckle__Upright__Front_Left"
+                            ]
+                        )
 
     .. hint::
 

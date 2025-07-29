@@ -51,3 +51,123 @@ from omni.isaac.core.utils.prims import set_prim_visibility
 # Set the base prim's visibility to false (invisible)
 set_prim_visibility(base_prim, False)
 ```
+
+## Waypoints from mouse click
+
+There were changes to omni kit as well the IsaacSim api.
+
+Exploring the omni kit widgets
+
+```python
+import omni.kit.viewport.utility as vp_utils
+viewport_window = vp_utils.get_active_viewport_window()
+mouse_x, mouse_y = viewport_window.get_mouse_position()
+
+viewport = vp_utils.get_active_viewport()
+ray_origin, ray_direction = viewport.compute_world_ray(mouse_x, mouse_y)
+```
+
+Ray casting ??
+
+```python
+import omni.physx
+import carb
+
+physx_interface = omni.physx.acquire_physx_interface()
+
+# Set max ray length (you can change this depending on scene scale)
+max_distance = 1000.0
+
+hit = physx_interface.raycast(ray_origin, ray_direction, max_distance)
+
+if hit["hit"]:
+    print("Hit position:", hit["position"])
+    print("Hit object:", hit["rigid_body"])
+else:
+    print("No hit")
+```
+
+```python
+def get_3d_point_under_cursor():
+    import omni.kit.viewport.utility as vp_utils
+    import omni.physx
+
+    viewport = vp_utils.get_active_viewport()
+    mouse_x, mouse_y = vp_utils.get_active_viewport_window().get_mouse_position()
+
+    ray_origin, ray_dir = viewport.compute_world_ray(mouse_x, mouse_y)
+
+    physx = omni.physx.acquire_physx_interface()
+    hit = physx.raycast(ray_origin, ray_dir, 1000.0)
+
+    if hit["hit"]:
+        return hit["position"]
+    return None
+```
+
+## reading Mouse
+
+reading mouse position
+
+```python
+import omni
+import carb
+
+self.input = carb.input.acquire_input_interface()
+self.mouse = omni.appwindow.get_default_app_window().get_mouse()
+
+(x,y) = self.input.get_mouse_coords_pixel(self.mouse)
+print(f"get_mouse_coords_pixel : {x,y}")
+
+(x, y) = self.input.get_mouse_coords_normalized(self.mouse)
+print(f"get_mouse_coords_normalized : {x, y}")
+```
+
+reading mouse state
+
+```python
+import omni
+import carb
+
+self.input = carb.input.acquire_input_interface()
+self.mouse = omni.appwindow.get_default_app_window().get_mouse()
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.LEFT_BUTTON)
+if val: print(f"LEFT_BUTTON : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.MIDDLE_BUTTON)
+if val: print(f"MIDDLE_BUTTON : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.RIGHT_BUTTON)
+if val: print(f"RIGHT_BUTTON : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.FORWARD_BUTTON)
+if val: print(f"FORWARD_BUTTON : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.SCROLL_RIGHT)
+if val: print(f"SCROLL_RIGHT : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.SCROLL_LEFT)
+if val: print(f"SCROLL_LEFT : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.SCROLL_UP)
+if val: print(f"SCROLL_UP : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.SCROLL_DOWN)
+if val: print(f"SCROLL_DOWN : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.MOVE_RIGHT)
+if val: print(f"MOVE_RIGHT : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.MOVE_LEFT)
+if val: print(f"MOVE_LEFT : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.MOVE_UP)
+if val: print(f"MOVE_UP : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.MOVE_DOWN)
+if val: print(f"MOVE_DOWN : {val}")
+
+val = self.input.get_mouse_value(self.mouse, carb.input.MouseInput.COUNT)
+if val: print(f"COUNT : {val}")
+```
