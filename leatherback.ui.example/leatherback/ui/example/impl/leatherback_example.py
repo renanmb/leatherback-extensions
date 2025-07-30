@@ -8,6 +8,7 @@ from .base_ui import BaseSample
 from leatherback.policy.example.leatherback import LeatherbackPolicy
 
 import os
+from isaacsim.core.api.objects import VisualSphere
 
 class LeatherbackExample(BaseSample):
     def __init__(self) -> None:
@@ -80,12 +81,14 @@ class LeatherbackExample(BaseSample):
         self._appwindow = omni.appwindow.get_default_app_window()
         self._input = carb.input.acquire_input_interface() 
         self._keyboard = self._appwindow.get_keyboard()
-        self.mouse = omni.appwindow.get_default_app_window().get_mouse()
+        self.mouse = self._appwindow.get_mouse()
 
         self._sub_keyboard = self._input.subscribe_to_keyboard_events(self._keyboard, self._sub_keyboard_event)
+        self._sub_mouse = self._input.subscribe_to_mouse_events(self.mouse, self._sub_mouse_event)
         # there is no subscribe_to_mouse_events
         self.val = self._input.get_mouse_value(self.mouse, carb.input.MouseInput.MIDDLE_BUTTON)
         if self.val: print(f"MIDDLE_BUTTON : {self.val}")
+        
 
         self._physics_ready = False
         self.get_world().add_physics_callback("physics_step", callback_fn=self.on_physics_step)
@@ -97,8 +100,17 @@ class LeatherbackExample(BaseSample):
 
     def on_physics_step(self, step_size) -> None:
         if self._physics_ready:
-            self.leatherback.forward(step_size, self.base_command)
+            self.leatherback.forward(step_size, self._base_command)
             # self.spot.forward(step_size, self._base_command) # change
+            VisualSphere(
+                prim_path="/new_cube_2",
+                name="cube_1",
+                position=self._base_command, #np.array([0, 0, 1.0]),
+                # scale=np.array([0.6, 0.5, 0.2]),
+                # size=1.0,
+                radius = 0.1,
+                color=np.array([255, 0, 0]),
+                )
         else:
             self._physics_ready = True
             self.leatherback.robot.initialize()

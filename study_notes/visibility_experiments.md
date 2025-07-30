@@ -200,7 +200,73 @@ The robotics samples have the following dependencies as reference
 
 ## Error getting the USD
 
+It was the path, need to do a file loader for simplifying loading the policy, and assets
+
 
 ```bash
 2025-07-29 20:16:44  [Warning] [omni.usd] Warning: in _ReportErrors at line 2890 of /builds/omniverse/usd-ci/USD/pxr/usd/usd/stage.cpp -- In </World/leatherback>: Could not open asset @/home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.ui.example/leatherback/ui/example/leatherback/leatherback_simple_better.usd@ for reference introduced by @anon:0x74da401d4580:World4.usd@</World/leatherback>. (computing expanded prim index for </World/leatherback> on stage @anon:0x74da401d4580:World4.usd@ <0x74da401d8da0>)
 ```
+
+## get mouse widget
+
+from the omni.kit.material.library
+
+test_helper.py
+
+```python
+async def _simulate_mouse(self, data):
+        mouse = omni.appwindow.get_default_app_window().get_mouse()
+        input_provider = carb.input.acquire_input_provider()
+
+        window_width = ui.Workspace.get_main_window_width()
+        window_height = ui.Workspace.get_main_window_height()
+        for type, x, y in data:
+            input_provider.buffer_mouse_event(mouse, type, (x / window_width, y / window_height), 0, (x, y))
+            await ui_test.human_delay(10)
+```
+
+from the omni.kit.material.library
+
+test_drag_drop.py
+
+line 65
+
+```python
+# do drag/drop
+# fixme - as TreeView cannot get items position, use magic number for 1st icon position
+source_pos = (mat_item.position.x, mat_item.position.y)
+dest_pos = (preview_widget.screen_position_x+20, preview_widget.screen_position_y+20)
+await self._simulate_mouse([(carb.input.MouseEventType.MOVE, source_pos[0], source_pos[1]),
+                            (carb.input.MouseEventType.LEFT_BUTTON_DOWN, 0, 0)])
+await self._simulate_mouse_steps(source_pos, dest_pos)
+await self._simulate_mouse([(carb.input.MouseEventType.LEFT_BUTTON_UP, 0, 0)])
+await ui_test.human_delay()
+```    
+
+line 128 
+
+```python
+# do drag/drop
+# fixme - string_widget.screen_position_y is wrong?
+source_pos = (mat_item.position.x, mat_item.position.y)
+dest_pos = (string_widget.screen_position_x + (string_widget.computed_content_width/2), string_widget.screen_position_y + 46)
+await self._simulate_mouse([(carb.input.MouseEventType.MOVE, source_pos[0], source_pos[1]),
+                            (carb.input.MouseEventType.LEFT_BUTTON_DOWN, 0, 0)])
+await self._simulate_mouse_steps(source_pos, dest_pos)
+await self._simulate_mouse([(carb.input.MouseEventType.LEFT_BUTTON_UP, 0, 0)])
+await ui_test.human_delay()
+```
+
+line 210
+
+```python
+# do drag/drop
+# fixme - as TreeView cannot get items position, use magic number for 1st icon position
+source_pos = (mat_item.position.x, mat_item.position.y)
+await self._simulate_mouse([(carb.input.MouseEventType.MOVE, source_pos[0], source_pos[1]),
+                            (carb.input.MouseEventType.LEFT_BUTTON_DOWN, 0, 0)])
+await self._simulate_mouse_steps(source_pos, prim_ui_pos)
+await self._simulate_mouse([(carb.input.MouseEventType.LEFT_BUTTON_UP, 0, 0)])
+await ui_test.human_delay(10)
+```
+
