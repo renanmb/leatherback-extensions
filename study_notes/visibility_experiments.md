@@ -52,6 +52,32 @@ from omni.isaac.core.utils.prims import set_prim_visibility
 set_prim_visibility(base_prim, False)
 ```
 
+## Define() -- what is it ?
+
+```python
+import omni.isaac.core.utils.stage as stage_utils
+from omni.isaac.core.prims import RigidPrim
+>>>
+# create a Cube at the given path
+stage_utils.get_current_stage().DefinePrim("/World/Xform", "Xform")
+stage_utils.get_current_stage().DefinePrim("/World/Xform/Cube", "Cube")
+```
+
+```python
+import omni.isaac.core.utils.stage as stage_utils
+from omni.isaac.core.scenes import Scene
+import omni.isaac.core.utils.prims as prims_utils
+
+# For remove_object
+stage_utils.add_reference_to_stage("/test_path/cube.usd", "/World/Cube")
+scene = Scene()
+scene.remove_object("Cube")
+
+# For delete_prim
+stage_utils.add_reference_to_stage("/test_path/cube.usd", "/World/Cube")
+prims_utils.delete_prim("/World/Cube")
+```
+
 ## Waypoints from mouse click
 
 There were changes to omni kit as well the IsaacSim api.
