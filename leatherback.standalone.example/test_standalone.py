@@ -24,12 +24,14 @@ import omni.usd
 from pxr import Usd, UsdGeom, UsdLux, Sdf, Gf
 
 from isaacsim.core.prims import XFormPrim # XFormPrimView
+from omni.physx.scripts import deformableUtils, physicsUtils  
 
 script_dir = os.path.dirname(__file__)
 relative_path = os.path.join("..", "leatherback")
 full_path = os.path.abspath(os.path.join(script_dir, relative_path))
 usd_path = os.path.abspath(os.path.join(full_path, "leatherback_simple_better.usd"))
-butter_path = os.path.abspath(os.path.join(full_path, "butterbot_v01.usd"))
+butterbot_path = os.path.abspath(os.path.join(full_path, "butterbot_v02.usd"))
+butter_path = os.path.abspath(os.path.join(full_path, "butter_tub.usdz"))
 
 first_step = True
 reset_needed = False
@@ -73,6 +75,12 @@ def on_physics_step(step_size) -> None:
             radius = 0.1,
             color=np.array([255, 0, 0]),
             )
+        positions = np.zeros((1, 3))
+        positions[0] = base_command
+        # orientations = np.zeros((1, 4))
+        # orientations[0] = orientation
+        butter = XFormPrim(prim_path03)
+        butter.set_world_poses(positions)
 
 
 # spawn world
@@ -82,7 +90,7 @@ assets_root_path = get_assets_root_path()
 if assets_root_path is None:
     carb.log_error("Could not find Isaac Sim assets folder")
 
-# spawn warehouse scene
+# spawn Default Grid Environment
 prim = define_prim("/World/Ground", "Xform")
 asset_path = assets_root_path + "/Isaac/Environments/Grid/default_environment.usd"
 prim.GetReferences().AddReference(asset_path)
@@ -113,13 +121,15 @@ base_command = np.zeros(3)
 
 # Testing visibility
 '''
-This will turn the prim invisible and add the butterbot.
+This will turn the leatherback prim invisible and add the butterbot.
 '''
 prim_path = "/World/leatherback" 
 prim_path02 = "/World/butterbot"
+prim_path03 = "/World/butter_tub"
 
 prim = stage.GetPrimAtPath(prim_path)
 prim02 = define_prim(prim_path02, "Xform")
+prim03 = define_prim(prim_path03, "Xform")
 
 # Check if the prim is valid
 if prim.IsValid():
@@ -127,7 +137,16 @@ if prim.IsValid():
     imageable = UsdGeom.Imageable(prim)
     # Set the visibility attribute to "invisible"
     imageable.GetVisibilityAttr().Set(UsdGeom.Tokens.invisible)
-    prim02.GetReferences().AddReference(butter_path) 
+    prim02.GetReferences().AddReference(butterbot_path) # butterbot asset is offset
+    # butterbot_mesh = UsdGeom.Mesh.Get(stage, prim_path02)
+    # physicsUtils.set_or_add_translate_op(butterbot_mesh, translate=Gf.Vec3f(0.0, 10.0, 0.0))
+
+    prim03.GetReferences().AddReference(butter_path) # need to scale the asset
+    butter_mesh = UsdGeom.Mesh.Get(stage, prim_path03)
+    # The butter_tub asset has issues, had to rotate 90 degrees around the z-axis, and scale it by 0.03
+    # The asset had the correct dimensions when opening on IsaacSim directly
+    physicsUtils.set_or_add_scale_op(butter_mesh, scale=Gf.Vec3f(0.03, 0.03, 0.03))
+    physicsUtils.set_or_add_orient_op(butter_mesh, orient=Gf.Quatf(0, 0, 0.70710678118, 0.70710678118))
 else:
     print(f"Error: Prim at path '{prim_path}' not found.")
 
