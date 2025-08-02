@@ -189,7 +189,7 @@ class LeatherbackPolicy(PolicyController):
         """
         if self._policy_counter % self._decimation == 0:
             obs = self._compute_observation(command)
-            print(command)
+            # print(command)
             # print(obs)
             # OBS seems to break
             # position error --- heading error cos --- heading error sin --- lin_vel_b[0] --- lin_vel_b[1] --- ang_vel_b[2] --- self._previous_action[0] --- self._previous_action[1]

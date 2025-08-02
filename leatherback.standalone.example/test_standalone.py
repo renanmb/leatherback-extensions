@@ -23,11 +23,13 @@ from isaacsim.core.api.objects import VisualSphere
 import omni.usd
 from pxr import Usd, UsdGeom, UsdLux, Sdf, Gf
 
+from isaacsim.core.prims import XFormPrim # XFormPrimView
 
 script_dir = os.path.dirname(__file__)
 relative_path = os.path.join("..", "leatherback")
 full_path = os.path.abspath(os.path.join(script_dir, relative_path))
 usd_path = os.path.abspath(os.path.join(full_path, "leatherback_simple_better.usd"))
+butter_path = os.path.abspath(os.path.join(full_path, "butterbot_v01.usd"))
 
 first_step = True
 reset_needed = False
@@ -60,7 +62,7 @@ def on_physics_step(step_size) -> None:
         reset_needed = False
         first_step = True
     else:
-        print(f"Current base command:{base_command}")
+        # print(f"Current base command:{base_command}")
         leatherback.forward(step_size, base_command)
         VisualSphere(
             prim_path="/new_cube_2",
@@ -111,19 +113,25 @@ base_command = np.zeros(3)
 
 # Testing visibility
 '''
-This will turn the prim invisible.
+This will turn the prim invisible and add the butterbot.
 '''
 prim_path = "/World/leatherback" 
+prim_path02 = "/World/butterbot"
+
 prim = stage.GetPrimAtPath(prim_path)
+prim02 = define_prim(prim_path02, "Xform")
+
 # Check if the prim is valid
 if prim.IsValid():
     # Get the UsdGeom.Imageable schema for the prim
     imageable = UsdGeom.Imageable(prim)
-
     # Set the visibility attribute to "invisible"
     imageable.GetVisibilityAttr().Set(UsdGeom.Tokens.invisible)
+    prim02.GetReferences().AddReference(butter_path) 
 else:
     print(f"Error: Prim at path '{prim_path}' not found.")
+
+
 
 i = 0
 idx = 0
@@ -133,12 +141,19 @@ while simulation_app.is_running():
         reset_needed = True
     if my_world.is_playing():
         position, orientation = leatherback.robot.get_world_pose() 
-        print(f"Get the current position: {position}")
+        # print(f"Get the current position: {position}")
         goal_reached = is_goal_reached(position, base_command)
-        print(f"Is the goal reached: {goal_reached}")
+        # print(f"Is the goal reached: {goal_reached}")
         # base_command = np.array([6, 0, 0])
         commands = np.array([[1, 0, 0],[3, 2, 0],[2, 4, 0],[0, 4, 0],[-1, 2, 0]])
         # commands = np.array([[1, 0, 0],[10, 2, 0],[3, 6, 0],[0, 4, 0],[-1, 2, 0]])
+        robot1 = XFormPrim(prim_path)
+        positions = np.zeros((1, 3))
+        positions[0] = position
+        orientations = np.zeros((1, 4))
+        orientations[0] = orientation
+        butterbot = XFormPrim(prim_path02)
+        butterbot.set_world_poses(positions,orientations)
 
         # ----------------------------------------
         # iterating over array

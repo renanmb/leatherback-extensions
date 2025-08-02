@@ -1,5 +1,17 @@
 # Experiments on Visibility
 
+the data is stored in two different types depending on if it's being managed in warp or not
+
+remeber! there are two layers to the sim
+
+there's the open usd layer
+
+and there's the "fabric" layer
+
+the fabric layer is a mirror of USD but operates without the API overhead to simulate things like physics
+
+you can manually set if you want to sync fabric to and from the USD stage
+
 Create the base prim
 
 ```python
@@ -76,6 +88,56 @@ scene.remove_object("Cube")
 # For delete_prim
 stage_utils.add_reference_to_stage("/test_path/cube.usd", "/World/Cube")
 prims_utils.delete_prim("/World/Cube")
+```
+
+This adds the butter bot but it doesnt move:
+
+```python
+prim_path = "/World/leatherback" 
+prim = stage.GetPrimAtPath(prim_path)
+# Add ButterBot to the prim_path "/World/leatherback"
+prim.GetReferences().AddReference(butter_path) 
+```
+
+
+```python
+# Get Leatherback Data
+tracked_prim = stage.GetPrimAtPath(prim_path)
+tracked_pose = omni.usd.get_world_transform_matrix(tracked_prim)
+# Get References to Visualization Object
+follower_prim = stage.GetPrimAtPath(prim_path02)
+follower_pose = omni.usd.get_world_transform_matrix(follower_prim)
+# Adapt Transformation
+follower_xform = UsdGeom.Xformable(follower_prim)
+follower_xform.ClearXformOpOrder()        
+xformOp = follower_xform.AddXformOp(UsdGeom.XformOp.TypeTransform, UsdGeom.XformOp.PrecisionDouble, "")
+xformOp.Set(tracked_pose)  
+print(tracked_pose)
+```
+
+```bash
+2025-08-01 20:46:39 [12,974ms] [Error] [omni.kit.app._impl] [py stderr]: Traceback (most recent call last):
+2025-08-01 20:46:39 [12,974ms] [Error] [omni.kit.app._impl] [py stderr]:   File "/home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/test_standalone.py", line 164, in <module>
+2025-08-01 20:46:39 [12,974ms] [Error] [omni.kit.app._impl] [py stderr]:     UsdGeom.Xformable(follower_xform).AddTranslateOp()
+2025-08-01 20:46:39 [12,974ms] [Error] [omni.kit.app._impl] [py stderr]: pxr.Tf.ErrorException: 
+	Error in 'pxrInternal_v0_22__pxrReserved__::UsdGeomXformable::AddXformOp' at line 190 in file /builds/omniverse/usd-ci/USD/pxr/usd/usdGeom/xformable.cpp : 'The xformOp 'xformOp:translate' already exists in xformOpOrder [[xformOp:translate, xformOp:rotateZYX, xformOp:scale]].'
+
+```
+
+Doesnt work
+
+```python
+robot1 = XFormPrim(prim_path)
+positions, orientations = robot1.get_world_poses()
+butterbot = XFormPrim(prim_path02)
+butterbot.set_world_poses(positions,orientations)
+```
+
+It outputs a constant string of:
+
+```bash
+Positions: [[-1.    0.    0.05]]
+orientations: [[1. 0. 0. 0.]]
 ```
 
 ## Waypoints from mouse click
