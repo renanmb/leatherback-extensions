@@ -25,6 +25,7 @@ python scripts/skrl/play.py --task Isaac-Leatherback-Direct-v1 --num_envs 32
 ./python.sh /home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/leatherback_standalone_direct.py
 ./python.sh /home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/spot_standalone.py
 ./python.sh /home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/test_standalone.py
+./python.sh /home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.standalone.example/butterbot_test01.py
 ```
 
 ## Installation
