@@ -179,6 +179,16 @@ steering_dof_name:
 
 Must design an interface class for the Articulation
 
+## MISC
+
+Some Errors:
+
+Had to Install Pillow to Isaacsim 4.5
+
+```bash
+./python.sh -m pip install Pillow
+```
+
 deleted this from setup_python_env.py:
 
 :/home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.policy.example:/home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.ui.example:/home/goat/Documents/GitHub/boredengineer/leatherback.example.interactive
