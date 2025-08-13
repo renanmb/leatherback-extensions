@@ -178,3 +178,23 @@ steering_dof_name:
 ```
 
 Must design an interface class for the Articulation
+
+deleted this from setup_python_env.py:
+
+:/home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.policy.example:/home/goat/Documents/GitHub/renanmb/leatherback-extensions/leatherback.ui.example:/home/goat/Documents/GitHub/boredengineer/leatherback.example.interactive
+
+> [!NOTE]  
+> - This Project was done in IsaacSim 4.5 with Ubuntu 22.04, Nvidia Drivers 570.169 and CUDA version 12.8
+> - The extension that runs inference requires custom install
+
+> [!TIP]
+> Optional information to help a user be more successful.
+
+> [!IMPORTANT]  
+> Crucial information necessary for users to succeed.
+
+> [!WARNING]  
+> Critical content demanding immediate user attention due to potential risks.
+
+> [!CAUTION]
+> Negative potential consequences of an action.
