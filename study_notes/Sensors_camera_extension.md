@@ -289,6 +289,187 @@ class WindowRect(Rect):
         super().__init__(window.position_x, width, window.position_y, height)
 ```
 
+## Atempt to Map it to Viewport
+
+
+```python
+import omni.kit.viewport.utility as vp_utils
+import omni.ui as ui
+import carb.input
+
+
+def _on_global_mouse_event(self, event, *_):
+    # Care only on click
+    if event.type != carb.input.MouseEventType.LEFT_BUTTON_DOWN:
+        return True
+
+    # 1. Get active viewport
+    viewport_api = vp_utils.get_active_viewport()
+    vp_width, vp_height = viewport_api.get_texture_resolution()
+
+    # 2. Get mouse coords (pixels in main window)
+    mx, my = self._input.get_mouse_coords_pixel(self.mouse)  # (x,y) in window space
+
+    # 3. Get main window size
+    win_w = ui.Workspace.get_main_window_width()
+    win_h = ui.Workspace.get_main_window_height()
+
+    # 4. Normalize to [0,1] wrt main window
+    nx = mx / win_w
+    ny = my / win_h
+
+    # 5. Map to viewport pixel coords
+    vx = int(nx * vp_width)
+    vy = int(ny * vp_height)
+
+    print(f"Viewport pixel coords: {(vx, vy)}")
+
+    # 6. Sample depth at this pixel
+    depth_img = self.camera.get_depth()
+    depth_value = depth_img[vy, vx]
+
+    # 7. Reproject to world
+    points_2d = np.array([[vx, vy]], dtype=np.float32)
+    depths    = np.array([depth_value], dtype=np.float32)
+    points_3d = self.camera.get_world_points_from_image_coords(points_2d, depths)
+
+    self._base_command = points_3d.flatten().tolist()
+    print("3D:", self._base_command)
+
+    return True
+```
+
+This implementation gave me the following error:
+
+```bash
+2025-08-19 14:30:04 [3,357,353ms] [Error] [omni.kit.app._impl] [py stderr]:     depth_value = depth_img[vy, vx]
+2025-08-19 14:30:04 [3,357,353ms] [Error] [omni.kit.app._impl] [py stderr]: IndexError: index 325 is out of bounds for axis 0 with size 128
+```
+
+Possible Solutions
+
+```python
+# 6. Sample depth at this pixel
+depth_img = self.camera.get_depth()
+h, w = depth_img.shape[:2]
+
+# Clamp coords into valid range
+vx = np.clip(vx, 0, w - 1)
+vy = np.clip(vy, 0, h - 1)
+
+depth_value = depth_img[vy, vx]
+
+print("Viewport:", vp_width, vp_height)
+print("Depth buffer:", depth_img.shape)
+print("Mouse → viewport:", vx, vy)
+```
+
+If they differ (which is common), you’ll want to rescale:
+
+```python
+h, w = depth_img.shape[:2]
+vx = int(nx * w)  # use depth buffer width
+vy = int(ny * h)  # use depth buffer height
+```
+
+Another try but using the camera resolution:
+
+```python
+# 1. Get mouse coords (pixels in main window)
+mx, my = self._input.get_mouse_coords_pixel(self.mouse)
+
+# 2. Get main window size
+win_w = ui.Workspace.get_main_window_width()
+win_h = ui.Workspace.get_main_window_height()
+
+# 3. Normalize to [0,1]
+nx = mx / win_w
+ny = my / win_h
+
+# 4. Map into camera pixel coords
+cam_w, cam_h = self.camera.get_resolution()
+vx = int(nx * cam_w)
+vy = int(ny * cam_h)
+
+# Flip y if needed (Isaac’s depth usually has origin at top-left)
+vy = cam_h - 1 - vy
+
+# 5. Sample depth at this pixel
+depth_img = self.camera.get_depth()
+depth_value = depth_img[vy, vx]
+
+# 6. Reproject
+points_2d = np.array([[vx, vy]], dtype=np.float32)
+depths    = np.array([depth_value], dtype=np.float32)
+points_3d = self.camera.get_world_points_from_image_coords(points_2d, depths)
+```
+
+## Get viewport dimensions
+
+```python
+import omni.ui as ui
+
+# Get the main Viewport window
+viewport = ui.Workspace.get_window("Viewport")
+
+if viewport:
+    # Get the position (x, y) and size (width, height) of the viewport
+    x, y, width, height = viewport.position_x, viewport.position_y, viewport.width, viewport.height
+
+    print(f"Viewport Location (x, y): ({x}, {y})")
+    print(f"Viewport Size (width, height): ({width}, {height})")
+else:
+    print("Main Viewport not found.")
+```
+
+## add_distance_to_image_plane_to_frame
+
+```python
+def add_distance_to_image_plane_to_frame(self, init_params: dict = None) -> None:
+    """Attach the distance_to_image_plane annotator to this camera.
+    Args:
+        init_params: Optional annotator parameters
+    The distance_to_image_plane annotator returns:
+
+        np.array
+        shape: (width, height, 1)
+        dtype: np.float32
+
+    See more details: https://docs.omniverse.nvidia.com/extensions/latest/ext_replicator/annotators_details.html#distance-to-image-plane
+    """
+    if self._custom_annotators["distance_to_image_plane"] is None:
+        self._custom_annotators["distance_to_image_plane"] = rep.AnnotatorRegistry.get_annotator(
+            "distance_to_image_plane", init_params=init_params
+        )
+        self._custom_annotators["distance_to_image_plane"].attach([self._render_product_path])
+    self._current_frame["distance_to_image_plane"] = None
+    return
+```        
+
+## add_distance_to_camera_to_frame
+
+```python
+def add_distance_to_camera_to_frame(self, init_params: dict = None) -> None:
+    """Attach the distance_to_camera_to_frame annotator to this camera.
+    Args:
+        init_params: Optional annotator parameters
+    The distance_to_camera_to_frame annotator returns:
+
+        np.array
+        shape: (width, height, 1)
+        dtype: np.float32
+
+    See more details: https://docs.omniverse.nvidia.com/extensions/latest/ext_replicator/annotators_details.html#distance-to-camera
+    """
+    if self._custom_annotators["distance_to_camera"] is None:
+        self._custom_annotators["distance_to_camera"] = rep.AnnotatorRegistry.get_annotator(
+            "distance_to_camera", init_params=init_params
+        )
+        self._custom_annotators["distance_to_camera"].attach([self._render_product_path])
+    self._current_frame["distance_to_camera"] = None
+    return
+```
+
 ## Massive issue
 
 ```bash
